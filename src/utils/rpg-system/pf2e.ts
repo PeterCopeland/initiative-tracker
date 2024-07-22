@@ -86,7 +86,7 @@ export class Pathfinder2eRpgSystem extends RpgSystem {
         if (lvl == null || lvl == undefined) return 0;
         const partyLvl = Math.round(
             playerLevels?.length ?? 0 > 0
-                ? playerLevels.reduce((a, b) => a + b) / playerLevels.length
+                ? playerLevels.reduce((a, b) => parseInt(a, 10) + parseInt(b, 10)) / playerLevels.length
                 : 0
         );
 
