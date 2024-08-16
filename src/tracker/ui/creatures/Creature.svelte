@@ -94,10 +94,16 @@
             {#each [...statuses] as status}
                 <Status
                     {status}
-                    on:remove={() => {
+                    on:update={() => {
                         tracker.updateCreatures({
                             creature,
                             change: { status: [status] }
+                        });
+                    }}
+                    on:remove={() => {
+                        tracker.updateCreatures({
+                            creature,
+                            change: { removeStatus: [status] }
                         });
                     }}
                 />

@@ -40,6 +40,7 @@ type CreatureUpdate = {
     temp?: number;
     max?: number;
     status?: Condition[];
+    removeStatus?: Condition[];
     hidden?: boolean;
     enabled?: boolean;
     //this is so dirty
@@ -226,18 +227,35 @@ function createTracker() {
             }
             if (change.status?.length) {
                 for (const status of change.status) {
-                    if ([...creature.status].find((s) => s.id == status.id)) {
-                        creature.status = new Set(
-                            [...creature.status].filter(
-                                (s) => s.id != status.id
-                            )
-                        );
-                        _logger?.log(
-                            `${creature.name} relieved of status ${status.name}`
-                        );
+                    if ([...creature.status].some((s) => s.id == status.id)) {
+                        if (status.hasAmount) {
+                            // Update the amount for an existing status, remove if <= 0
+                            if (status.amount > 0) {
+                                creature.status.forEach((s) => {
+                                    s.amount = status.amount;
+                                });
+                            } else {
+                                if (!Array.isArray(change.removeStatus)) {
+                                    change.removeStatus = [];
+                                }
+                                change.removeStatus.push(status);
+                            }
+                        }
                     } else {
                         creature.status.add(status);
                     }
+                }
+            }
+            if (change.removeStatus?.length) {
+                for (const status of change.removeStatus) {
+                    creature.status = new Set(
+                        [...creature.status].filter(
+                            (s) => s.id != status.id
+                        )
+                    );
+                    _logger?.log(
+                        `${creature.name} relieved of status ${status.name}`
+                    );
                 }
             }
             if ("hidden" in change) {
@@ -424,21 +442,35 @@ function createTracker() {
                     }
                     if (Array.isArray(change.status) && change.status?.length) {
                         for (const status of change.status) {
-                            if (typeof status == "string") {
-                                let cond = _settings.statuses.find(
-                                    (c) => c.name == status
-                                ) ?? {
-                                    name: status,
-                                    description: "",
-                                    id: getId()
-                                };
-                                creature.status.add(cond);
-                            } else if (
-                                typeof status == "object" &&
-                                status.name?.length
-                            ) {
-                                creature.status.add(status as Condition);
+                            if ([...creature.status].some((s) => s.id == status.id)) {
+                                if (status.hasAmount) {
+                                    // Update the amount for an existing status, remove if <= 0
+                                    if (status.amount > 0) {
+                                        creature.status.forEach((s) => {
+                                            s.amount = status.amount;
+                                        });
+                                    } else {
+                                        if (!Array.isArray(change.removeStatus)) {
+                                            change.removeStatus = [];
+                                        }
+                                        change.removeStatus.push(status);
+                                    }
+                                }
+                            } else {
+                                creature.status.add(status);
                             }
+                        }
+                    }
+                    if (Array.isArray(change.removeStatus) && change.removeStatus?.length) {
+                        for (const status of change.removeStatus) {
+                            creature.status = new Set(
+                                [...creature.status].filter(
+                                    (s) => s.id != status.id
+                                )
+                            );
+                            _logger?.log(
+                                `${creature.name} relieved of status ${status.name}`
+                            );
                         }
                     }
                 }
@@ -1177,18 +1209,35 @@ class Tracker {
             }
             if (change.status?.length) {
                 for (const status of change.status) {
-                    if ([...creature.status].find((s) => s.id == status.id)) {
-                        creature.status = new Set(
-                            [...creature.status].filter(
-                                (s) => s.id != status.id
-                            )
-                        );
-                        this.tryLog(
-                            `${creature.name} relieved of status ${status.name}`
-                        );
+                    if ([...creature.status].some((s) => s.id == status.id)) {
+                        if (status.hasAmount) {
+                            // Update the amount for an existing status, remove if <= 0
+                            if (status.amount > 0) {
+                                creature.status.forEach((s) => {
+                                    s.amount = status.amount;
+                                });
+                            } else {
+                                if (!Array.isArray(change.removeStatus)) {
+                                    change.removeStatus = [];
+                                }
+                                change.removeStatus.push(status);
+                            }
+                        }
                     } else {
                         creature.status.add(status);
                     }
+                }
+            }
+            if (change.removeStatus?.length) {
+                for (const status of change.removeStatus) {
+                    creature.status = new Set(
+                        [...creature.status].filter(
+                            (s) => s.id != status.id
+                        )
+                    );
+                    this.tryLog(
+                        `${creature.name} relieved of status ${status.name}`
+                    );
                 }
             }
             if ("hidden" in change) {
